@@ -8,8 +8,6 @@
 # Source function library.
 . /etc/rc.d/init.d/functions
 
-[ -f /etc/dictd.conf ] || exit 0
-
 
 DICTD=/usr/sbin/dictd
 DICTD_FLAGS=
@@ -20,15 +18,23 @@ prog=dictd
 
 function start
 {
+    unset RETVAL
     if [ -x $DICTD ]; then
 	echo -n $"Starting $prog: "
-	daemon $DICTD $DICTD_FLAGS
-	echo
+	if [ -s /etc/dictd.conf ]; then
+	   daemon $DICTD $DICTD_FLAGS
+	   echo
+	else
+	   echo -n $"no dictionaries installed"
+	   echo_failure
+	   echo
+	   RETVAL=1
+	fi
     else
 	echo "$0: cannot find $DICTD or it's not executable"
     fi
 
-    RETVAL=$?
+    RETVAL=${RETVAL:-$?}
     [ $RETVAL -eq 0 ] && touch $LOCKFILE
 }
 
