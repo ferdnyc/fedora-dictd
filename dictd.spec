@@ -9,6 +9,7 @@ Source1: dictd.init
 Patch0:  dictd-1.9.7-gcc34.patch
 URL: http://www.dict.org/
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
+Prereq: chkconfig
 BuildRequires: flex
 BuildRequires: bison
 
@@ -60,6 +61,9 @@ fi
 %config(noreplace) /etc/sysconfig/dictd
 
 %changelog
+* Thu Mar 10 2005 Bill Nottingham <notting@redhat.com> 1.9.7-7
+- prereq chkconfig
+
 * Wed Mar 02 2005 Karsten Hopp <karsten@redhat.de> 1.9.7-6
 - build with gcc-4
 
