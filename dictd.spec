@@ -1,10 +1,11 @@
 Summary: DICT protocol (RFC 2229) command-line client
 Name: dictd
 Version: 1.9.7
-Release: 3
+Release: 4
 License: GPL
 Group: Applications/Internet
 Source0: ftp://ftp.dict.org/pub/dict/%{name}-%{version}.tar.gz
+Source1: dictd.init
 Patch0:  dictd-1.9.7-gcc34.patch
 URL: http://www.dict.org/
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
@@ -27,12 +28,25 @@ make
 
 %install
 rm -rf $RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT/usr/bin
+mkdir -p $RPM_BUILD_ROOT{/usr/bin,/etc/init.d,/etc/sysconfig}
 mkdir -p $RPM_BUILD_ROOT/%{_mandir}/man1
 make install DESTDIR=$RPM_BUILD_ROOT
+install -m 755 %{SOURCE1} $RPM_BUILD_ROOT/etc/init.d/dictd
+install -m 644 dictd.conf $RPM_BUILD_ROOT/etc/dictd.conf
+echo "DICTD_FLAGS=" > $RPM_BUILD_ROOT/etc/sysconfig/dictd
 
 %clean
 rm -rf $RPM_BUILD_ROOT
+
+%post
+if [ $1 = 1 ]; then
+   /sbin/chkconfig --add dictd
+fi
+
+%preun
+if [ $1 = 0 ]; then
+   /sbin/chkconfig --del dictd
+fi
 
 %files
 %defattr(-,root,root,0755)
@@ -42,8 +56,14 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/libdictdplugin.a
 %{_includedir}/*
 %{_mandir}/man?/*
+/etc/init.d/*
+%config(noreplace) /etc/dictd.conf
+%config(noreplace) /etc/sysconfig/dictd
 
 %changelog
+* Mon Oct 04 2004 Karsten Hopp <karsten@redhat.de> 1.9.7-4 
+- add initscript
+
 * Sat Jun 19 2004 Karsten Hopp <karsten@redhat.de> 1.9.7-3 
 - fix build with gcc34
 

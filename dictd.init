@@ -1,0 +1,74 @@
+#!/bin/sh
+#
+# chkconfig: - 91 9
+# description: Starts and stops the dict server
+# processname: dictd
+# config: /etc/dictd.conf
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+[ -f /etc/dictd.conf ] || exit 0
+
+
+DICTD=/usr/sbin/dictd
+DICTD_FLAGS=
+LOCKFILE=/var/lock/subsys/dictd
+prog=dictd
+
+[ -e /etc/sysconfig/dictd ] && . /etc/sysconfig/dictd
+
+function start
+{
+    if [ -x $DICTD ]; then
+	echo -n $"Starting $prog: "
+	daemon $DICTD $DICTD_FLAGS
+	echo
+    else
+	echo "$0: cannot find $DICTD or it's not executable"
+    fi
+
+    RETVAL=$?
+    [ $RETVAL -eq 0 ] && touch $LOCKFILE
+}
+
+function stop
+{
+    echo -n $"Shutting down $prog: "
+    killproc $prog
+    echo
+    rm -f $LOCKFILE
+
+    RETVAL=0
+}
+
+function restart
+{
+    stop
+    start
+}
+
+# See how we were called.
+case "$1" in
+    start)	start
+		;;
+    stop)	stop
+		;;
+    restart)	restart
+		;;
+    condrestart)
+		RETVAL=0
+		test -f $LOCKFILE && restart
+		;;
+    status)
+		status dictd
+		RETVAL=$?
+		;;
+    *)
+		echo $"Usage: $0 {start|stop|restart|condrestart|status}"
+		exit 1
+		;;
+esac
+
+exit $RETVAL
+
