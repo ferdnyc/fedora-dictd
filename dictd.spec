@@ -32,7 +32,7 @@ mkdir -p $RPM_BUILD_ROOT{/usr/bin,/etc/init.d,/etc/sysconfig}
 mkdir -p $RPM_BUILD_ROOT/%{_mandir}/man1
 make install DESTDIR=$RPM_BUILD_ROOT
 install -m 755 %{SOURCE1} $RPM_BUILD_ROOT/etc/init.d/dictd
-install -m 644 dictd.conf $RPM_BUILD_ROOT/etc/dictd.conf
+#install -m 644 dictd.conf $RPM_BUILD_ROOT/etc/dictd.conf
 echo "DICTD_FLAGS=" > $RPM_BUILD_ROOT/etc/sysconfig/dictd
 
 %clean
