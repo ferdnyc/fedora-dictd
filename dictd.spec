@@ -1,7 +1,7 @@
 Summary: DICT protocol (RFC 2229) command-line client
 Name: dictd
 Version: 1.9.7
-Release: 7
+Release: 8
 License: GPL
 Group: Applications/Internet
 Source0: ftp://ftp.dict.org/pub/dict/%{name}-%{version}.tar.gz
@@ -29,10 +29,10 @@ make
 
 %install
 rm -rf $RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT{/usr/bin,/etc/init.d,/etc/sysconfig}
+mkdir -p $RPM_BUILD_ROOT{/usr/bin,/etc/rc.d/init.d,/etc/sysconfig}
 mkdir -p $RPM_BUILD_ROOT/%{_mandir}/man1
 make install DESTDIR=$RPM_BUILD_ROOT
-install -m 755 %{SOURCE1} $RPM_BUILD_ROOT/etc/init.d/dictd
+install -m 755 %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/dictd
 #install -m 644 dictd.conf $RPM_BUILD_ROOT/etc/dictd.conf
 echo "DICTD_FLAGS=" > $RPM_BUILD_ROOT/etc/sysconfig/dictd
 
@@ -57,10 +57,13 @@ fi
 %{_libdir}/libdictdplugin.a
 %{_includedir}/*
 %{_mandir}/man?/*
-/etc/init.d/*
+/etc/rc.d/init.d/*
 %config(noreplace) /etc/sysconfig/dictd
 
 %changelog
+* Sat Apr 02 2005 Florian La Roche <laroche@redhat.com>
+- /etc/init.d -> /etc/rc.d/init.d
+
 * Thu Mar 10 2005 Bill Nottingham <notting@redhat.com> 1.9.7-7
 - prereq chkconfig
 
