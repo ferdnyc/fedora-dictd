@@ -1,10 +1,11 @@
 Summary: DICT protocol (RFC 2229) command-line client
 Name: dictd
 Version: 1.9.7
-Release: 1
+Release: 3
 License: GPL
 Group: Applications/Internet
 Source0: ftp://ftp.dict.org/pub/dict/%{name}-%{version}.tar.gz
+Patch0:  dictd-1.9.7-gcc34.patch
 URL: http://www.dict.org/
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 BuildRequires: flex
@@ -18,6 +19,7 @@ language dictionary databases.
 
 %prep
 %setup -q
+%patch0 -p1 -b .gcc34
 
 %build
 %configure --with-cflags="$RPM_OPT_FLAGS"
@@ -42,6 +44,12 @@ rm -rf $RPM_BUILD_ROOT
 %{_mandir}/man?/*
 
 %changelog
+* Sat Jun 19 2004 Karsten Hopp <karsten@redhat.de> 1.9.7-3 
+- fix build with gcc34
+
+* Tue Jun 15 2004 Elliot Lee <sopwith@redhat.com>
+- rebuilt
+
 * Wed Jun 02 2004 Karsten Hopp <karsten@redhat.de> 1.9.7-1 
 - update
 
