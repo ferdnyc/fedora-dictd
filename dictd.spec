@@ -1,7 +1,7 @@
 Summary: DICT protocol (RFC 2229) command-line client
 Name: dictd
-Version: 1.5.5
-Release: 7
+Version: 1.9.7
+Release: 1
 License: GPL
 Group: Applications/Internet
 Source0: ftp://ftp.dict.org/pub/dict/%{name}-%{version}.tar.gz
@@ -21,26 +21,30 @@ language dictionary databases.
 
 %build
 %configure --with-cflags="$RPM_OPT_FLAGS"
-make dict
+make
 
 %install
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/usr/bin
 mkdir -p $RPM_BUILD_ROOT/%{_mandir}/man1
-make install.dict \
-	bindir=$RPM_BUILD_ROOT/usr/bin \
-	man1_prefix=$RPM_BUILD_ROOT/%{_mandir}/man1
+make install DESTDIR=$RPM_BUILD_ROOT
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,0755)
-%doc ANNOUNCE COPYING ChangeLog
-%{_bindir}/dict
-%{_mandir}/man1/dict.1.gz
+%doc ANNOUNCE COPYING ChangeLog README doc/rfc2229.txt doc/security.doc
+%{_bindir}/*
+%{_sbindir}/*
+%{_libdir}/libdictdplugin.a
+%{_includedir}/*
+%{_mandir}/man?/*
 
 %changelog
+* Wed Jun 02 2004 Karsten Hopp <karsten@redhat.de> 1.9.7-1 
+- update
+
 * Fri Feb 13 2004 Elliot Lee <sopwith@redhat.com>
 - rebuilt
 
