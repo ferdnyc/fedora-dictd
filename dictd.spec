@@ -1,7 +1,7 @@
 Summary: DICT protocol (RFC 2229) command-line client
 Name: dictd
 Version: 1.9.7
-Release: 8
+Release: 9
 License: GPL
 Group: Applications/Internet
 Source0: ftp://ftp.dict.org/pub/dict/%{name}-%{version}.tar.gz
@@ -29,12 +29,11 @@ make
 
 %install
 rm -rf $RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT{/usr/bin,/etc/rc.d/init.d,/etc/sysconfig}
+mkdir -p $RPM_BUILD_ROOT{%{_bindir},%{_sysconfdir}/rc.d/init.d,%{_sysconfdir}/sysconfig}
 mkdir -p $RPM_BUILD_ROOT/%{_mandir}/man1
 make install DESTDIR=$RPM_BUILD_ROOT
-install -m 755 %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/dictd
-#install -m 644 dictd.conf $RPM_BUILD_ROOT/etc/dictd.conf
-echo "DICTD_FLAGS=" > $RPM_BUILD_ROOT/etc/sysconfig/dictd
+install -m 755 %{SOURCE1} $RPM_BUILD_ROOT/%{_sysconfdir}/rc.d/init.d/dictd
+echo "DICTD_FLAGS=" > $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/dictd
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -57,12 +56,16 @@ fi
 %{_libdir}/libdictdplugin.a
 %{_includedir}/*
 %{_mandir}/man?/*
-/etc/rc.d/init.d/*
-%config(noreplace) /etc/sysconfig/dictd
+%{_sysconfdir}/rc.d/init.d/*
+%config(noreplace) %{_sysconfdir}/sysconfig/dictd
 
 %changelog
+* Mon May 02 2005 Karsten Hopp <karsten@redhat.de> 1.9.7-9
+- use _bindir / _sysconfdir macros
+
 * Sat Apr 02 2005 Florian La Roche <laroche@redhat.com>
 - /etc/init.d -> /etc/rc.d/init.d
+
 
 * Thu Mar 10 2005 Bill Nottingham <notting@redhat.com> 1.9.7-7
 - prereq chkconfig
