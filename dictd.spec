@@ -1,17 +1,15 @@
 Summary: DICT protocol (RFC 2229) command-line client
 Name: dictd
-Version: 1.9.7
-Release: 9
+Version: 1.9.15
+Release: 1
 License: GPL
 Group: Applications/Internet
 Source0: ftp://ftp.dict.org/pub/dict/%{name}-%{version}.tar.gz
 Source1: dictd.init
-Patch0:  dictd-1.9.7-gcc34.patch
 URL: http://www.dict.org/
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 Prereq: chkconfig
-BuildRequires: flex
-BuildRequires: bison
+BuildRequires: flex bison libtool-libs
 
 %description
 Command-line client for the DICT protocol.  The Dictionary Server
@@ -21,7 +19,6 @@ language dictionary databases.
 
 %prep
 %setup -q
-%patch0 -p1 -b .gcc34
 
 %build
 %configure --with-cflags="$RPM_OPT_FLAGS"
@@ -53,13 +50,17 @@ fi
 %doc ANNOUNCE COPYING ChangeLog README doc/rfc2229.txt doc/security.doc
 %{_bindir}/*
 %{_sbindir}/*
-%{_libdir}/libdictdplugin.a
+%{_libexecdir}/dictdplugin_dbi.so
 %{_includedir}/*
 %{_mandir}/man?/*
 %{_sysconfdir}/rc.d/init.d/*
 %config(noreplace) %{_sysconfdir}/sysconfig/dictd
 
 %changelog
+* Wed Jul 06 2005 Karsten Hopp <karsten@redhat.de> 1.9.15-1
+- update to dictd-1.9.15
+- drop gcc34 patch
+
 * Mon May 02 2005 Karsten Hopp <karsten@redhat.de> 1.9.7-9
 - use _bindir / _sysconfdir macros
 
