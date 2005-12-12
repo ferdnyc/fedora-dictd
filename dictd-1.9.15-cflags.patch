@@ -1,0 +1,20 @@
+--- dictd-1.9.15/Makefile.in.rh1	2005-12-12 13:41:23.000000000 +0100
++++ dictd-1.9.15/Makefile.in	2005-12-12 13:48:10.000000000 +0100
+@@ -75,7 +75,7 @@
+ JUDYLIB=        @JUDYLIB@
+ DBILIB=         @DBILIB@
+ 
+-CFLAGS= @CFLAGS@ -DDICT_PLUGIN_PATH=\"$(PLUGIN_DIR)\" -DDICT_DICTIONARY_PATH=\"$(DICT_DIR)\" -DDICT_VERSION=\"$(DICT_VERSION)\" -DDICT_CONFIG_PATH=\"$(CONF_DIR)\"
++CFLAGS= @CFLAGS@ -fPIC -DDICT_PLUGIN_PATH=\"$(PLUGIN_DIR)\" -DDICT_DICTIONARY_PATH=\"$(DICT_DIR)\" -DDICT_VERSION=\"$(DICT_VERSION)\" -DDICT_CONFIG_PATH=\"$(CONF_DIR)\"
+ 
+ SCFLAGS=        @SCFLAGS@
+ LDFLAGS=        @LDFLAGS@
+@@ -140,7 +140,7 @@
+ ifeq (1,$(local_libmaa))
+ $(PLUGINS) dictdplugin_popen.so dictdplugin_exit.so $(EXES) : local_libmaa
+ local_libmaa :
+-	( cd $(srcdir)/libmaa && $(MAKE) ) && touch local_libmaa
++	( cd $(srcdir)/libmaa && $(MAKE) CC="$(CC) $(CFLAGS)" ) && touch local_libmaa
+ endif
+ 
+ ifeq (1,$(local_regex))
