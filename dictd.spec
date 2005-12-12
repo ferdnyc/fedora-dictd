@@ -6,6 +6,7 @@ License: GPL
 Group: Applications/Internet
 Source0: ftp://ftp.dict.org/pub/dict/%{name}-%{version}.tar.gz
 Source1: dictd.init
+Patch0: dictd-1.9.15-cflags.patch
 URL: http://www.dict.org/
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 Prereq: chkconfig
@@ -19,6 +20,7 @@ language dictionary databases.
 
 %prep
 %setup -q
+%patch0 -p1
 
 %build
 %configure --with-cflags="$RPM_OPT_FLAGS"
