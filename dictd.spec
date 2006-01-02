@@ -1,7 +1,7 @@
 Summary: DICT protocol (RFC 2229) command-line client
 Name: dictd
 Version: 1.9.15
-Release: 4
+Release: 5
 License: GPL
 Group: Applications/Internet
 Source0: ftp://ftp.dict.org/pub/dict/%{name}-%{version}.tar.gz
@@ -10,7 +10,7 @@ Patch0: dictd-1.9.15-cflags.patch
 URL: http://www.dict.org/
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
 Prereq: chkconfig
-BuildRequires: flex bison libtool libtool-libs
+BuildRequires: flex bison libtool libtool-libs libtool-ltdl-devel
 
 %description
 Command-line client for the DICT protocol.  The Dictionary Server
@@ -59,6 +59,9 @@ fi
 %config(noreplace) %{_sysconfdir}/sysconfig/dictd
 
 %changelog
+* Mon Jan 02 2006 Karsten Hopp <karsten@redhat.de> 1.9.15-5
+- add BuildRequires libtool-ltdl-devel (#176505)
+
 * Tue Dec 20 2005 Karsten Hopp <karsten@redhat.de> 1.9.15-4
 - consult dict.org if no server is specified on the commandline
   (#176038)
