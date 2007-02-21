@@ -1,17 +1,18 @@
-Summary: DICT protocol (RFC 2229) command-line client
-Name: dictd
-Version: 1.9.15
-Release: 8.1
-License: GPL
-Group: Applications/Internet
-Source0: ftp://ftp.dict.org/pub/dict/%{name}-%{version}.tar.gz
-Source1: dictd.init
-Patch0: dictd-1.9.15-cflags.patch
-URL: http://www.dict.org/
-BuildRoot: %{_tmppath}/%{name}-%{version}-root
-Prereq: chkconfig
-BuildRequires: flex bison libtool libtool-libs libtool-ltdl-devel byacc
-BuildRequires: libdbi-devel, zlib-devel
+Summary:   DICT protocol (RFC 2229) command-line client
+Name:      dictd
+Version:   1.9.15
+Release:   9
+License:   GPL
+Group:     Applications/Internet
+Source0:   ftp://ftp.dict.org/pub/dict/%{name}-%{version}.tar.gz
+Source1:   dictd.init
+Patch0:    dictd-1.9.15-cflags.patch
+URL:       http://www.dict.org/
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+Requires(post):  chkconfig
+Requires(preun): chkconfig
+BuildRequires:   flex bison libtool libtool-libs libtool-ltdl-devel byacc
+BuildRequires:   libdbi-devel, zlib-devel
 
 %description
 Command-line client for the DICT protocol.  The Dictionary Server
@@ -25,13 +26,12 @@ language dictionary databases.
 
 %build
 %configure --with-cflags="$RPM_OPT_FLAGS" --enable-dictorg
-make
+make %{?_smp_mflags}
 
 %install
 rm -rf $RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT{%{_bindir},%{_sysconfdir}/rc.d/init.d,%{_sysconfdir}/sysconfig}
-mkdir -p $RPM_BUILD_ROOT/%{_mandir}/man1
 make install DESTDIR=$RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/{rc.d/init.d,sysconfig}
 install -m 755 %{SOURCE1} $RPM_BUILD_ROOT/%{_sysconfdir}/rc.d/init.d/dictd
 echo "DICTD_FLAGS=" > $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/dictd
 
@@ -60,6 +60,9 @@ fi
 %config(noreplace) %{_sysconfdir}/sysconfig/dictd
 
 %changelog
+* Wed Feb 21 2007 Karsten Hopp <karsten@redhat.com> 1.9.15-9
+- misc. merge review fixes
+
 * Wed Jul 12 2006 Jesse Keating <jkeating@redhat.com> - 1.9.15-8.1
 - rebuild
 
