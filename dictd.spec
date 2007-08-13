@@ -1,7 +1,7 @@
 Summary:   DICT protocol (RFC 2229) command-line client
 Name:      dictd
 Version:   1.9.15
-Release:   9
+Release:   10
 License:   GPL
 Group:     Applications/Internet
 Source0:   ftp://ftp.dict.org/pub/dict/%{name}-%{version}.tar.gz
@@ -60,6 +60,9 @@ fi
 %config(noreplace) %{_sysconfdir}/sysconfig/dictd
 
 %changelog
+* Mon Aug 13 2007 Karsten Hopp <karsten@redhat.com> 1.9.15-10
+- add LSB stuff (#246910)
+
 * Wed Feb 21 2007 Karsten Hopp <karsten@redhat.com> 1.9.15-9
 - misc. merge review fixes
 
