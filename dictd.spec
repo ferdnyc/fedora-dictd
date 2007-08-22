@@ -1,18 +1,17 @@
 Summary:   DICT protocol (RFC 2229) command-line client
 Name:      dictd
-Version:   1.9.15
-Release:   11
+Version:   1.10.9
+Release:   1
 License:   GPL2+ and zlib and MIT
 Group:     Applications/Internet
-Source0:   ftp://ftp.dict.org/pub/dict/%{name}-%{version}.tar.gz
+Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
 Source1:   dictd.init
-Patch0:    dictd-1.9.15-cflags.patch
 URL:       http://www.dict.org/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires(post):  chkconfig
 Requires(preun): chkconfig
 BuildRequires:   flex bison libtool libtool-libs libtool-ltdl-devel byacc
-BuildRequires:   libdbi-devel, zlib-devel
+BuildRequires:   libdbi-devel, zlib-devel, gawk
 
 %description
 Command-line client for the DICT protocol.  The Dictionary Server
@@ -22,10 +21,9 @@ language dictionary databases.
 
 %prep
 %setup -q
-%patch0 -p1
 
 %build
-%configure --with-cflags="$RPM_OPT_FLAGS" --enable-dictorg
+%configure --with-cflags="$RPM_OPT_FLAGS" --enable-dictorg --disable-plugin 
 make %{?_smp_mflags}
 
 %install
@@ -53,13 +51,14 @@ fi
 %doc ANNOUNCE COPYING ChangeLog README doc/rfc2229.txt doc/security.doc
 %{_bindir}/*
 %{_sbindir}/*
-%{_libexecdir}/dictdplugin_dbi.so
-%{_includedir}/*
 %{_mandir}/man?/*
 %{_sysconfdir}/rc.d/init.d/*
 %config(noreplace) %{_sysconfdir}/sysconfig/dictd
 
 %changelog
+* Wed Aug 22 2007 Karsten Hopp <karsten@redhat.com> 1.10.9-1
+- new upstream version
+
 * Wed Aug 22 2007 Karsten Hopp <karsten@redhat.com> 1.9.15-11
 - update license tag and rebuild
 
