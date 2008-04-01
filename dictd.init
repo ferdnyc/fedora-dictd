@@ -91,7 +91,7 @@ case "$1" in
 		RETVAL=$?
 		;;
     *)
-		echo $"Usage: $0 {start|stop|restart|try-restart|condrestart|reload|force-reloadstatus}"
+		echo $"Usage: $0 {start|stop|restart|try-restart|condrestart|reload|force-reload|status}"
 		exit 1
 		;;
 esac
