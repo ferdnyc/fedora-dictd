@@ -1,7 +1,7 @@
 Summary:   DICT protocol (RFC 2229) command-line client
 Name:      dictd
-Version:   1.10.9
-Release:   2
+Version:   1.10.11
+Release:   1
 License:   GPL2+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
@@ -56,6 +56,13 @@ fi
 %config(noreplace) %{_sysconfdir}/sysconfig/dictd
 
 %changelog
+* Wed May 07 2008 Karsten Hopp <karsten@redhat.com> 1.10.11-1
+- update to 1.10.11
+
+* Tue Apr 01 2008 Karsten Hopp <karsten@redhat.com> 1.10.10-1
+- fix typo (#281981)
+- update
+
 * Tue Feb 19 2008 Fedora Release Engineering <rel-eng@fedoraproject.org> - 1.10.9-2
 - Autorebuild for GCC 4.3
 
