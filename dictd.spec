@@ -1,8 +1,8 @@
 Summary:   DICT protocol (RFC 2229) command-line client
 Name:      dictd
 Version:   1.10.11
-Release:   2
-License:   GPL2+ and zlib and MIT
+Release:   3
+License:   GPL+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
 Source1:   dictd.init
@@ -56,6 +56,9 @@ fi
 %config(noreplace) %{_sysconfdir}/sysconfig/dictd
 
 %changelog
+* Wed Jul 16 2008 Tom "spot" Callaway <tcallawa@redhat.com> 1.10.11-3
+- fix license tag
+
 * Wed May 07 2008 Karsten Hopp <karsten@redhat.com> 1.10.11-2
 - update to 1.10.11
 
