@@ -1,11 +1,13 @@
+%define libmaaVersion 1.1.0
 Summary:   DICT protocol (RFC 2229) command-line client
 Name:      dictd
-Version:   1.10.11
-Release:   3
+Version:   1.11.0
+Release:   1
 License:   GPL+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
 Source1:   dictd.init
+Source2:   libmaa-%{libmaaVersion}.tar.gz
 URL:       http://www.dict.org/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires(post):  chkconfig
@@ -21,9 +23,12 @@ language dictionary databases.
 
 %prep
 %setup -q
+tar xzf %{SOURCE2}
+mv libmaa-%{libmaaVersion} libmaa
 
 %build
-%configure --with-cflags="$RPM_OPT_FLAGS" --enable-dictorg --disable-plugin 
+%configure --with-cflags="$RPM_OPT_FLAGS" --enable-dictorg --disable-plugin \
+            --with-local-libmaa
 make %{?_smp_mflags}
 
 %install
@@ -56,6 +61,9 @@ fi
 %config(noreplace) %{_sysconfdir}/sysconfig/dictd
 
 %changelog
+* Wed Jan 14 2009 Karsten Hopp <karsten@redhat.com> 1.11.0-1
+- update
+
 * Wed Jul 16 2008 Tom "spot" Callaway <tcallawa@redhat.com> 1.10.11-3
 - fix license tag
 
