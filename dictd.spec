@@ -53,9 +53,9 @@ if [ $1 = 0 ]; then
 fi
 
 %postun
-%if [ $1 -ge 1 ] ; then
+if [ $1 -ge 1 ] ; then
    /sbin/service dictd condrestart > /dev/null 2>&1 || :
-%fi
+fi
 
 %files
 %defattr(-,root,root,-)
