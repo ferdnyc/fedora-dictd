@@ -2,7 +2,7 @@
 Summary:   DICT protocol (RFC 2229) command-line client
 Name:      dictd
 Version:   1.11.0
-Release:   1
+Release:   2
 License:   GPL+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
@@ -12,6 +12,7 @@ URL:       http://www.dict.org/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires(post):  chkconfig
 Requires(preun): chkconfig
+Requires(postun): initscripts
 BuildRequires:   flex bison libtool libtool-libs libtool-ltdl-devel byacc
 BuildRequires:   libdbi-devel, zlib-devel, gawk
 
@@ -51,8 +52,13 @@ if [ $1 = 0 ]; then
    /sbin/chkconfig --del dictd
 fi
 
+%postun
+%if [ $1 -ge 1 ] ; then
+   /sbin/service dictd condrestart > /dev/null 2>&1 || :
+%fi
+
 %files
-%defattr(-,root,root,0755)
+%defattr(-,root,root,-)
 %doc ANNOUNCE COPYING ChangeLog README doc/rfc2229.txt doc/security.doc
 %{_bindir}/*
 %{_sbindir}/*
@@ -61,6 +67,10 @@ fi
 %config(noreplace) %{_sysconfdir}/sysconfig/dictd
 
 %changelog
+* Thu Jan 22 2009 Karsten Hopp <karsten@redhat.com> 1.11.0-2
+- add postun script (#225694)
+- fix file permissions (defattr)
+
 * Wed Jan 14 2009 Karsten Hopp <karsten@redhat.com> 1.11.0-1
 - update
 
