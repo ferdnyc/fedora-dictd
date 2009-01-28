@@ -2,7 +2,7 @@
 Summary:   DICT protocol (RFC 2229) command-line client
 Name:      dictd
 Version:   1.11.0
-Release:   2
+Release:   3%{?dist}
 License:   GPL+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
@@ -67,6 +67,9 @@ fi
 %config(noreplace) %{_sysconfdir}/sysconfig/dictd
 
 %changelog
+* Wed Jan 28 2009 Karsten Hopp <karsten@redhat.com> 1.11.0-3
+- add disttag
+
 * Thu Jan 22 2009 Karsten Hopp <karsten@redhat.com> 1.11.0-2
 - add postun script (#225694)
 - fix file permissions (defattr)
