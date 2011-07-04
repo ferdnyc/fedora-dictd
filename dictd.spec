@@ -1,3 +1,11 @@
+# User management -- https://fedoraproject.org/wiki/PackageUserCreation
+%bcond_without      fedora
+# Need to register in https://fedoraproject.org/wiki/PackageUserRegistry
+%global uid     52
+# Do no change username -- hardcoded in dictd.c
+%global username    dictd
+%global homedir     %{_datadir}/dict/dictd
+%global gecos       dictd dictionary server
 %define libmaaVersion 1.3.0
 Summary:   DICT protocol (RFC 2229) server and command-line client
 Name:      dictd
@@ -11,11 +19,10 @@ Source2:   libmaa-%{libmaaVersion}.tar.gz
 Patch0:    dictd-1.12.0-unusedvar.patch
 URL:       http://www.dict.org/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires(post):  chkconfig
-Requires(preun): chkconfig
-Requires(postun): initscripts
 BuildRequires:   flex bison libtool libtool-libs libtool-ltdl-devel byacc
 BuildRequires:   libdbi-devel, zlib-devel, gawk
+BuildRequires:  fedora-usermgmt-devel
+%{?FE_USERADD_REQ}
 
 %description
 Command-line client for the DICT protocol.  The Dictionary Server
@@ -26,6 +33,9 @@ language dictionary databases.
 %package server
 Summary: Server for the Dictionary Server Protocol (DICT)
 Group: System Environment/Daemons
+Requires(post):  chkconfig
+Requires(preun): chkconfig
+Requires(postun): initscripts
 %description server
 A server for the DICT protocol. You need to install dictd-usable databases
 befor you can use this server. Those can be found p.e. at 
@@ -53,44 +63,92 @@ make %{?_smp_mflags}
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/{rc.d/init.d,sysconfig}
+mkdir -p $RPM_BUILD_ROOT%{homedir}
 install -m 755 %{SOURCE1} $RPM_BUILD_ROOT/%{_sysconfdir}/rc.d/init.d/dictd
-echo "DICTD_FLAGS=" > $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/dictd
+cat <<EOF > $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/dictd
+# Secure by default: --listen-to 127.0.0.1
+# Remove this option if you want dictd to answer remote clients.
+DICTD_FLAGS='--listen-to 127.0.0.1'
+EOF
+cat <<EOF > $RPM_BUILD_ROOT/%{_sysconfdir}/dictd.conf
+global {
+    #syslog
+    #syslog_facility daemon
+}
+
+# Add database definitions here...
+
+# We stop the search here
+database_exit
+
+# Add hidden database definitions here...
+
+EOF
+
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%post
+%post server
 if [ $1 = 1 ]; then
    /sbin/chkconfig --add dictd
 fi
 
-%preun
+%preun server
 if [ $1 = 0 ]; then
+   # Stop the service (otherwise userdel will fail)
+   /etc/rc.d/init.d/dictd stop &>/dev/null || :
    /sbin/chkconfig --del dictd
 fi
 
-%postun
+%postun server
 if [ $1 -ge 1 ] ; then
    /sbin/service dictd condrestart > /dev/null 2>&1 || :
+else
+   %__fe_userdel  %username &>/dev/null || :
+   %__fe_groupdel %username &>/dev/null || :
+fi
+
+%pre
+if [ $1 = 1 ]; then
+    %__fe_groupadd %uid -r %username &>/dev/null || :
+    %__fe_useradd  %uid -r -s /sbin/nologin -d %homedir -M -c '%gecos' -g %username %username &>/dev/null || :
 fi
 
 %files
 %defattr(-,root,root,-)
 %doc ANNOUNCE COPYING ChangeLog README doc/rfc2229.txt doc/security.doc
-%{_bindir}/*
-%{_mandir}/man?/*
-%{_sysconfdir}/rc.d/init.d/*
-%config(noreplace) %{_sysconfdir}/sysconfig/dictd
+%doc examples/dict1.conf
+%{_bindir}/dict
+%{_mandir}/man1/dict.1*
+
 
 %files server
 %doc ANNOUNCE COPYING INSTALL ChangeLog README doc/rfc2229.txt doc/security.doc
+%doc examples/dictd*
+%exclude %{_mandir}/man1/dict.1*
+%exclude %{_bindir}/dict
+%{_bindir}/*
 %{_sbindir}/*
+%{_mandir}/man?/*
 %{_sysconfdir}/rc.d/init.d/*
+%{homedir}
+%config(noreplace) %{_sysconfdir}/sysconfig/dictd
+%config(noreplace) %{_sysconfdir}/dictd.conf
 
 %changelog
 * Mon Jul 04 2011 Karsten Hopp <karsten@redhat.com> 1.12.0-1
 - update to version 1.12.0
 - split into server and client packages
+- add most of Oron Peled's <oron@actcom.co.il> changes from 
+  https://bugzilla.redhat.com/attachment.cgi?id=381332
+  - The daemon now runs as 'dictd' user. This user is added/remove
+    during install/uninstall.
+  - Create and own a default configuration file
+  - By default listen only on 127.0.0.1 (secure by default)
+  - Default directory for dictionaries (datadir) is
+    now /usr/share/dict/dictd and not /usr/share
+  - Add the examples directory to the documentation
 
 * Tue Feb 08 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.11.0-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
