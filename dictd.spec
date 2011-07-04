@@ -1,13 +1,14 @@
-%define libmaaVersion 1.1.0
-Summary:   DICT protocol (RFC 2229) command-line client
+%define libmaaVersion 1.3.0
+Summary:   DICT protocol (RFC 2229) server and command-line client
 Name:      dictd
-Version:   1.11.0
-Release:   6%{?dist}
+Version:   1.12.0
+Release:   1%{?dist}
 License:   GPL+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
 Source1:   dictd.init
 Source2:   libmaa-%{libmaaVersion}.tar.gz
+Patch0:    dictd-1.12.0-unusedvar.patch
 URL:       http://www.dict.org/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires(post):  chkconfig
@@ -22,14 +23,30 @@ Protocol (DICT) is a TCP transaction based query/response protocol that
 allows a client to access dictionary definitions from a set of natural
 language dictionary databases.
 
+%package server
+Summary: Server for the Dictionary Server Protocol (DICT)
+Group: System Environment/Daemons
+%description server
+A server for the DICT protocol. You need to install dictd-usable databases
+befor you can use this server. Those can be found p.e. at 
+ftp://ftp.dict.org/pub/dict/pre/
+More information can be found in the INSTALL file in this package.
+
 %prep
 %setup -q
 tar xzf %{SOURCE2}
 mv libmaa-%{libmaaVersion} libmaa
+%patch0 -p1 -b .unusedvar
 
 %build
-%configure --with-cflags="$RPM_OPT_FLAGS" --enable-dictorg --disable-plugin \
-            --with-local-libmaa
+pushd libmaa
+./configure
+make
+popd
+
+export CFLAGS="$RPM_OPT_FLAGS"
+export LDFLAGS='-Llibmaa/.libs' CPPFLAGS='-Ilibmaa'
+%configure --enable-dictorg --disable-plugin
 make %{?_smp_mflags}
 
 %install
@@ -61,12 +78,20 @@ fi
 %defattr(-,root,root,-)
 %doc ANNOUNCE COPYING ChangeLog README doc/rfc2229.txt doc/security.doc
 %{_bindir}/*
-%{_sbindir}/*
 %{_mandir}/man?/*
 %{_sysconfdir}/rc.d/init.d/*
 %config(noreplace) %{_sysconfdir}/sysconfig/dictd
 
+%files server
+%doc ANNOUNCE COPYING INSTALL ChangeLog README doc/rfc2229.txt doc/security.doc
+%{_sbindir}/*
+%{_sysconfdir}/rc.d/init.d/*
+
 %changelog
+* Mon Jul 04 2011 Karsten Hopp <karsten@redhat.com> 1.12.0-1
+- update to version 1.12.0
+- split into server and client packages
+
 * Tue Feb 08 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.11.0-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
 

@@ -1,0 +1,33 @@
+diff -up dictd-1.12.0/libmaa/pr.c.unusedvar dictd-1.12.0/libmaa/pr.c
+--- dictd-1.12.0/libmaa/pr.c.unusedvar	2011-07-04 13:40:12.130732584 +0200
++++ dictd-1.12.0/libmaa/pr.c	2011-07-04 13:40:33.479732586 +0200
+@@ -386,7 +386,7 @@ int pr_filter( const char *command,
+ 	       const char *inBuffer, int inLen,
+ 	       char *outBuffer, int outMaxLen )
+ {
+-   int  pid;
++    __attribute__((__unused__)) int  pid;
+    int  in, out;
+    
+    pid = pr_open( command, PR_CREATE_STDIN | PR_CREATE_STDOUT,
+diff -up dictd-1.12.0/libmaa/string.c.unusedvar dictd-1.12.0/libmaa/string.c
+--- dictd-1.12.0/libmaa/string.c.unusedvar	2008-12-07 15:58:11.000000000 +0100
++++ dictd-1.12.0/libmaa/string.c	2011-07-04 13:39:40.787732580 +0200
+@@ -111,7 +111,7 @@ int str_pool_iterate(
+    hsh_HashTable hash = p -> hash;
+    hsh_Position  hash_pos;
+    void *key;
+-   void *datum;
++   __attribute__((__unused__)) void *datum;
+ 
+ /*   printf ("inside str_pool_iterate\n"); */
+ 
+@@ -140,7 +140,7 @@ int str_pool_iterate_arg(
+    hsh_HashTable hash = p -> hash;
+    hsh_Position  hash_pos;
+    void *key;
+-   void *datum;
++   __attribute__((__unused__)) void *datum;
+ 
+    HSH_ITERATE (hash, hash_pos, key, datum){
+       if ((*iterator) (key, arg)){
