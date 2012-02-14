@@ -10,11 +10,11 @@
 Summary:   DICT protocol (RFC 2229) server and command-line client
 Name:      dictd
 Version:   1.12.0
-Release:   2%{?dist}
+Release:   3%{?dist}
 License:   GPL+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
-Source1:   dictd.init
+Source1:   dictd.service
 Source2:   libmaa-%{libmaaVersion}.tar.gz
 Patch0:    dictd-1.12.0-unusedvar.patch
 URL:       http://www.dict.org/
@@ -33,9 +33,12 @@ language dictionary databases.
 %package server
 Summary: Server for the Dictionary Server Protocol (DICT)
 Group: System Environment/Daemons
-Requires(post):  chkconfig
-Requires(preun): chkconfig
-Requires(postun): initscripts
+#Requires(post):  chkconfig
+#Requires(preun): chkconfig
+#Requires(postun): initscripts
+Requires(post): systemd-units
+Requires(preun): systemd-units
+Requires(postun): systemd-units
 %description server
 A server for the DICT protocol. You need to install dictd-usable databases
 befor you can use this server. Those can be found p.e. at 
@@ -62,9 +65,10 @@ make %{?_smp_mflags}
 %install
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/{rc.d/init.d,sysconfig}
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
+mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 mkdir -p $RPM_BUILD_ROOT%{homedir}
-install -m 755 %{SOURCE1} $RPM_BUILD_ROOT/%{_sysconfdir}/rc.d/init.d/dictd
+install -m 755 %{SOURCE1} $RPM_BUILD_ROOT/%{_unitdir}/dictd.service
 cat <<EOF > $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/dictd
 # Secure by default: --listen-to 127.0.0.1
 # Remove this option if you want dictd to answer remote clients.
@@ -90,20 +94,34 @@ EOF
 rm -rf $RPM_BUILD_ROOT
 
 %post server
-if [ $1 = 1 ]; then
-   /sbin/chkconfig --add dictd
+#if [ $1 = 1 ]; then
+#   /sbin/chkconfig --add dictd
+#fi
+if [ $1 -eq 1 ] ; then 
+    # Initial installation 
+    /bin/systemctl daemon-reload >/dev/null 2>&1 || :
 fi
+
 
 %preun server
-if [ $1 = 0 ]; then
-   # Stop the service (otherwise userdel will fail)
-   /etc/rc.d/init.d/dictd stop &>/dev/null || :
-   /sbin/chkconfig --del dictd
+#if [ $1 = 0 ]; then
+#   # Stop the service (otherwise userdel will fail)
+#   /etc/rc.d/init.d/dictd stop &>/dev/null || :
+#   /sbin/chkconfig --del dictd
+#fi
+if [ $1 -eq 0 ] ; then
+    # Package removal, not upgrade
+    /bin/systemctl --no-reload disable dictd.service > /dev/null 2>&1 || :
+    /bin/systemctl stop dictd.service > /dev/null 2>&1 || :
 fi
 
+
 %postun server
+/bin/systemctl daemon-reload >/dev/null 2>&1 || :
 if [ $1 -ge 1 ] ; then
-   /sbin/service dictd condrestart > /dev/null 2>&1 || :
+    #/sbin/service dictd condrestart > /dev/null 2>&1 || :
+    # Package upgrade, not uninstall
+    /bin/systemctl try-restart dictd.service >/dev/null 2>&1 || :
 else
    %__fe_userdel  %username &>/dev/null || :
    %__fe_groupdel %username &>/dev/null || :
@@ -114,6 +132,17 @@ if [ $1 = 1 ]; then
     %__fe_groupadd %uid -r %username &>/dev/null || :
     %__fe_useradd  %uid -r -s /sbin/nologin -d %homedir -M -c '%gecos' -g %username %username &>/dev/null || :
 fi
+
+%triggerun -- dictd-server < 1.12.0-3
+# Save the current service runlevel info
+# User must manually run systemd-sysv-convert --apply httpd
+# to migrate them to systemd targets
+/usr/bin/systemd-sysv-convert --save dictd >/dev/null 2>&1 ||:
+
+# Run these because the SysV package being removed won't do them
+/sbin/chkconfig --del dictd >/dev/null 2>&1 || :
+/bin/systemctl try-restart dictd.service >/dev/null 2>&1 || :
+
 
 %files
 %defattr(-,root,root,-)
@@ -131,12 +160,15 @@ fi
 %{_bindir}/*
 %{_sbindir}/*
 %{_mandir}/man?/*
-%{_sysconfdir}/rc.d/init.d/*
+%{_unitdir}/dictd.service
 %{homedir}
 %config(noreplace) %{_sysconfdir}/sysconfig/dictd
 %config(noreplace) %{_sysconfdir}/dictd.conf
 
 %changelog
+* Tue Feb 14 2012 Jon Ciesla <limburgher@gmail.com> - 1.12.0-3
+- Migrate to systemd, BZ 772085.
+
 * Fri Jan 13 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.12.0-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
 
