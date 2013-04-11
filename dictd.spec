@@ -10,7 +10,7 @@
 Summary:   DICT protocol (RFC 2229) server and command-line client
 Name:      dictd
 Version:   1.12.0
-Release:   5%{?dist}
+Release:   6%{?dist}
 License:   GPL+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
@@ -21,8 +21,7 @@ URL:       http://www.dict.org/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires:   flex bison libtool libtool-libs libtool-ltdl-devel byacc
 BuildRequires:   libdbi-devel, zlib-devel, gawk
-BuildRequires:  fedora-usermgmt-devel
-%{?FE_USERADD_REQ}
+Requires(pre):  shadow-utils
 
 %description
 Command-line client for the DICT protocol.  The Dictionary Server
@@ -122,16 +121,15 @@ if [ $1 -ge 1 ] ; then
     #/sbin/service dictd condrestart > /dev/null 2>&1 || :
     # Package upgrade, not uninstall
     /bin/systemctl try-restart dictd.service >/dev/null 2>&1 || :
-else
-   %__fe_userdel  %username &>/dev/null || :
-   %__fe_groupdel %username &>/dev/null || :
 fi
 
 %pre
-if [ $1 = 1 ]; then
-    %__fe_groupadd %uid -r %username &>/dev/null || :
-    %__fe_useradd  %uid -r -s /sbin/nologin -d %homedir -M -c '%gecos' -g %username %username &>/dev/null || :
-fi
+getent group %{username} >/dev/null || groupadd -r %{username} -g %{uid}
+getent passwd %{username} >/dev/null || \
+    useradd -r -g %{username} -d %{homedir} -s /sbin/nologin -u %{uid} \
+    -c '%{gecos}' %{username}
+exit 0
+
 
 %triggerun -- dictd-server < 1.12.0-3
 # Save the current service runlevel info
@@ -166,6 +164,9 @@ fi
 %config(noreplace) %{_sysconfdir}/dictd.conf
 
 %changelog
+* Wed Apr 10 2013 Jon Ciesla <limburgher@gmail.com> - 1.12.0-6
+- Migrate from fedora-usermgmt to guideline scriptlets.
+
 * Wed Feb 13 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.12.0-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_19_Mass_Rebuild
 
