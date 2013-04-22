@@ -6,17 +6,16 @@
 %global username    dictd
 %global homedir     %{_datadir}/dict/dictd
 %global gecos       dictd dictionary server
-%define libmaaVersion 1.3.0
+%define libmaaVersion 1.3.2
 Summary:   DICT protocol (RFC 2229) server and command-line client
 Name:      dictd
-Version:   1.12.0
-Release:   6%{?dist}
+Version:   1.12.1
+Release:   1%{?dist}
 License:   GPL+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
 Source1:   dictd.service
 Source2:   libmaa-%{libmaaVersion}.tar.gz
-Patch0:    dictd-1.12.0-unusedvar.patch
 URL:       http://www.dict.org/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires:   flex bison libtool libtool-libs libtool-ltdl-devel byacc
@@ -32,9 +31,6 @@ language dictionary databases.
 %package server
 Summary: Server for the Dictionary Server Protocol (DICT)
 Group: System Environment/Daemons
-#Requires(post):  chkconfig
-#Requires(preun): chkconfig
-#Requires(postun): initscripts
 Requires(post): systemd-units
 Requires(preun): systemd-units
 Requires(postun): systemd-units
@@ -48,10 +44,13 @@ More information can be found in the INSTALL file in this package.
 %setup -q
 tar xzf %{SOURCE2}
 mv libmaa-%{libmaaVersion} libmaa
-%patch0 -p1 -b .unusedvar
 
 %build
+# Required for aarch64 support:
+autoreconf -i -f
 pushd libmaa
+# Required for aarch64 support:
+autoreconf -i -f
 ./configure
 make
 popd
@@ -164,6 +163,10 @@ exit 0
 %config(noreplace) %{_sysconfdir}/dictd.conf
 
 %changelog
+* Mon Apr 22 2013 Karsten Hopp <karsten@redhat.com> 1.12.1-1
+- update to 1.12.1
+- add support for aarch64 (#925252)
+
 * Wed Apr 10 2013 Jon Ciesla <limburgher@gmail.com> - 1.12.0-6
 - Migrate from fedora-usermgmt to guideline scriptlets.
 
