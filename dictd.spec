@@ -11,7 +11,7 @@
 Summary:   DICT protocol (RFC 2229) server and command-line client
 Name:      dictd
 Version:   1.12.1
-Release:   4%{?dist}
+Release:   5%{?dist}
 License:   GPL+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
@@ -167,6 +167,9 @@ exit 0
 %config(noreplace) %{_sysconfdir}/dictd.conf
 
 %changelog
+* Tue Feb 25 2014 Karsten Hopp <karsten@redhat.com> 1.12.1-5
+- used hardened build flag to enable PIE (rhbz 955198)
+
 * Mon Aug 05 2013 Karsten Hopp <karsten@redhat.com> 1.12.1-3
 - add BR: systemd-units for the _unitdir macro
 
