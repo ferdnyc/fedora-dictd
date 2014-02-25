@@ -1,3 +1,4 @@
+%global _hardened_build 1
 # User management -- https://fedoraproject.org/wiki/PackageUserCreation
 %bcond_without      fedora
 # Need to register in https://fedoraproject.org/wiki/PackageUserRegistry
@@ -10,12 +11,13 @@
 Summary:   DICT protocol (RFC 2229) server and command-line client
 Name:      dictd
 Version:   1.12.1
-Release:   3%{?dist}
+Release:   4%{?dist}
 License:   GPL+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
 Source1:   dictd.service
 Source2:   libmaa-%{libmaaVersion}.tar.gz
+Patch0:    dictd-1.12.1-unused-return.patch
 URL:       http://www.dict.org/
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires:   flex bison libtool libtool-libs libtool-ltdl-devel byacc
@@ -36,7 +38,7 @@ Requires(preun): systemd-units
 Requires(postun): systemd-units
 %description server
 A server for the DICT protocol. You need to install dictd-usable databases
-befor you can use this server. Those can be found p.e. at 
+before you can use this server. Those can be found p.e. at 
 ftp://ftp.dict.org/pub/dict/pre/
 More information can be found in the INSTALL file in this package.
 
@@ -44,10 +46,13 @@ More information can be found in the INSTALL file in this package.
 %setup -q
 tar xzf %{SOURCE2}
 mv libmaa-%{libmaaVersion} libmaa
+%patch0 -p1
 
 %build
 # Required for aarch64 support:
 autoreconf -i -f
+export CFLAGS="$RPM_OPT_FLAGS -fPIC"
+export LDFLAGS="%{?__global_ldflags}" CPPFLAGS="$RPM_OPT_FLAGS -fPIC"
 pushd libmaa
 # Required for aarch64 support:
 autoreconf -i -f
@@ -55,8 +60,7 @@ autoreconf -i -f
 make
 popd
 
-export CFLAGS="$RPM_OPT_FLAGS"
-export LDFLAGS='-Llibmaa/.libs' CPPFLAGS='-Ilibmaa'
+export LDFLAGS="%{?__global_ldflags} -Llibmaa/.libs" CPPFLAGS="-Ilibmaa $RPM_OPT_FLAGS -fPIC"
 %configure --enable-dictorg --disable-plugin
 make %{?_smp_mflags}
 
@@ -327,5 +331,5 @@ exit 0
 * Thu May 23 2002 Tim Powers <timp@redhat.com>
 - automated rebuild
 
-* Tue Mar 26 2000 Philip Copeland <bryce@redhat.com> 1.5.5-1
+* Sun Mar 26 2000 Philip Copeland <bryce@redhat.com> 1.5.5-1
 - initial rpm version
