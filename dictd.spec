@@ -8,6 +8,7 @@
 %global homedir     %{_datadir}/dict/dictd
 %global gecos       dictd dictionary server
 %define libmaaVersion 1.3.2
+
 Summary:   DICT protocol (RFC 2229) server and command-line client
 Name:      dictd
 Version:   1.12.1
@@ -19,9 +20,9 @@ Source1:   dictd.service
 Source2:   libmaa-%{libmaaVersion}.tar.gz
 Patch0:    dictd-1.12.1-unused-return.patch
 URL:       http://www.dict.org/
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-BuildRequires:   flex bison libtool libtool-libs libtool-ltdl-devel byacc
-BuildRequires:   libdbi-devel, zlib-devel, gawk, systemd-units
+
+BuildRequires:  flex bison libtool libtool-ltdl-devel byacc
+BuildRequires:  libdbi-devel, zlib-devel, gawk, systemd
 Requires(pre):  shadow-utils
 
 %description
@@ -33,9 +34,9 @@ language dictionary databases.
 %package server
 Summary: Server for the Dictionary Server Protocol (DICT)
 Group: System Environment/Daemons
-Requires(post): systemd-units
-Requires(preun): systemd-units
-Requires(postun): systemd-units
+Requires(post): systemd
+Requires(preun): systemd
+Requires(postun): systemd
 %description server
 A server for the DICT protocol. You need to install dictd-usable databases
 before you can use this server. Those can be found p.e. at 
@@ -49,15 +50,12 @@ mv libmaa-%{libmaaVersion} libmaa
 %patch0 -p1
 
 %build
-# Required for aarch64 support:
-autoreconf -i -f
 export CFLAGS="$RPM_OPT_FLAGS -fPIC"
 export LDFLAGS="%{?__global_ldflags}" CPPFLAGS="$RPM_OPT_FLAGS -fPIC"
 pushd libmaa
 # Required for aarch64 support:
-autoreconf -i -f
-./configure
-make
+%configure
+make %{?_smp_mflags}
 popd
 
 export LDFLAGS="%{?__global_ldflags} -Llibmaa/.libs" CPPFLAGS="-Ilibmaa $RPM_OPT_FLAGS -fPIC"
@@ -65,12 +63,12 @@ export LDFLAGS="%{?__global_ldflags} -Llibmaa/.libs" CPPFLAGS="-Ilibmaa $RPM_OPT
 make %{?_smp_mflags}
 
 %install
-rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
 mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 mkdir -p $RPM_BUILD_ROOT%{homedir}
 install -m 755 %{SOURCE1} $RPM_BUILD_ROOT/%{_unitdir}/dictd.service
+
 cat <<EOF > $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/dictd
 # Secure by default: --listen-to 127.0.0.1
 # Remove this option if you want dictd to answer remote clients.
@@ -92,39 +90,14 @@ database_exit
 EOF
 
 
-%clean
-rm -rf $RPM_BUILD_ROOT
-
 %post server
-#if [ $1 = 1 ]; then
-#   /sbin/chkconfig --add dictd
-#fi
-if [ $1 -eq 1 ] ; then 
-    # Initial installation 
-    /bin/systemctl daemon-reload >/dev/null 2>&1 || :
-fi
-
+%systemd_post dictd.service
 
 %preun server
-#if [ $1 = 0 ]; then
-#   # Stop the service (otherwise userdel will fail)
-#   /etc/rc.d/init.d/dictd stop &>/dev/null || :
-#   /sbin/chkconfig --del dictd
-#fi
-if [ $1 -eq 0 ] ; then
-    # Package removal, not upgrade
-    /bin/systemctl --no-reload disable dictd.service > /dev/null 2>&1 || :
-    /bin/systemctl stop dictd.service > /dev/null 2>&1 || :
-fi
-
+%systemd_preun dictd.service
 
 %postun server
-/bin/systemctl daemon-reload >/dev/null 2>&1 || :
-if [ $1 -ge 1 ] ; then
-    #/sbin/service dictd condrestart > /dev/null 2>&1 || :
-    # Package upgrade, not uninstall
-    /bin/systemctl try-restart dictd.service >/dev/null 2>&1 || :
-fi
+%systemd_postun_with_restart dictd.service 
 
 %pre
 getent group %{username} >/dev/null || groupadd -r %{username} -g %{uid}
@@ -134,19 +107,7 @@ getent passwd %{username} >/dev/null || \
 exit 0
 
 
-%triggerun -- dictd-server < 1.12.0-3
-# Save the current service runlevel info
-# User must manually run systemd-sysv-convert --apply httpd
-# to migrate them to systemd targets
-/usr/bin/systemd-sysv-convert --save dictd >/dev/null 2>&1 ||:
-
-# Run these because the SysV package being removed won't do them
-/sbin/chkconfig --del dictd >/dev/null 2>&1 || :
-/bin/systemctl try-restart dictd.service >/dev/null 2>&1 || :
-
-
 %files
-%defattr(-,root,root,-)
 %doc ANNOUNCE COPYING ChangeLog README doc/rfc2229.txt doc/security.doc
 %doc examples/dict1.conf
 %{_bindir}/dict
@@ -167,6 +128,11 @@ exit 0
 %config(noreplace) %{_sysconfdir}/dictd.conf
 
 %changelog
+* Wed Jun 18 2014 Peter Robinson <pbrobinson@fedoraproject.org> 1.12.1-7
+- %%configure macro updates config.guess/sub for new arches (aarch64/ppc64le)
+- Update systemd scriptlets to latest standard
+- General cleanups
+
 * Sat Jun 07 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.12.1-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
 
