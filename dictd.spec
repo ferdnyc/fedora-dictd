@@ -12,7 +12,7 @@
 Summary:   DICT protocol (RFC 2229) server and command-line client
 Name:      dictd
 Version:   1.12.1
-Release:   7%{?dist}
+Release:   8%{?dist}
 License:   GPL+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
@@ -128,6 +128,9 @@ exit 0
 %config(noreplace) %{_sysconfdir}/dictd.conf
 
 %changelog
+* Sat Aug 16 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.12.1-8
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
+
 * Wed Jun 18 2014 Peter Robinson <pbrobinson@fedoraproject.org> 1.12.1-7
 - %%configure macro updates config.guess/sub for new arches (aarch64/ppc64le)
 - Update systemd scriptlets to latest standard
