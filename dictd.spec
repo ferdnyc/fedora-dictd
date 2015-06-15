@@ -7,6 +7,7 @@
 %global username    dictd
 %global homedir     %{_datadir}/dict/dictd
 %global gecos       dictd dictionary server
+%global selinux_variants mls targeted
 %define libmaaVersion 1.3.2
 
 Summary:   DICT protocol (RFC 2229) server and command-line client
@@ -18,11 +19,18 @@ Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
 Source1:   dictd.service
 Source2:   libmaa-%{libmaaVersion}.tar.gz
+Source3:   dictd2.te
+Source4:   dictd3.te
+Source5:   dictd4.te
+Source6:   dictd5.te
+Source7:   dictd6.te
+Source8:   dictd7.te
 Patch0:    dictd-1.12.1-unused-return.patch
 URL:       http://www.dict.org/
 
 BuildRequires:  flex bison libtool libtool-ltdl-devel byacc
 BuildRequires:  libdbi-devel, zlib-devel, gawk, systemd
+BuildRequires:	checkpolicy, selinux-policy-devel, /usr/share/selinux/devel/policyhelp
 Requires(pre):  shadow-utils
 
 %description
@@ -37,6 +45,10 @@ Group: System Environment/Daemons
 Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
+%if "%{_selinux_policy_version}" != ""
+Requires:       selinux-policy >= %{_selinux_policy_version}
+%endif
+
 %description server
 A server for the DICT protocol. You need to install dictd-usable databases
 before you can use this server. Those can be found p.e. at 
@@ -48,6 +60,8 @@ More information can be found in the INSTALL file in this package.
 tar xzf %{SOURCE2}
 mv libmaa-%{libmaaVersion} libmaa
 %patch0 -p1
+mkdir SELinux
+cp -p %{SOURCE3} %{SOURCE4} %{SOURCE5} %{SOURCE6} %{SOURCE7} %{SOURCE8} SELinux
 
 %build
 export CFLAGS="$RPM_OPT_FLAGS -fPIC"
@@ -57,6 +71,20 @@ pushd libmaa
 %configure
 make %{?_smp_mflags}
 popd
+
+cd SELinux
+for selinuxvariant in %{selinux_variants}
+do
+  make NAME=${selinuxvariant} -f /usr/share/selinux/devel/Makefile
+  mv dictd2.pp dictd2.pp.${selinuxvariant}
+  mv dictd3.pp dictd3.pp.${selinuxvariant}
+  mv dictd4.pp dictd4.pp.${selinuxvariant}
+  mv dictd5.pp dictd5.pp.${selinuxvariant}
+  mv dictd6.pp dictd6.pp.${selinuxvariant}
+  mv dictd7.pp dictd7.pp.${selinuxvariant}
+  make NAME=${selinuxvariant} -f /usr/share/selinux/devel/Makefile clean
+done
+cd -
 
 export LDFLAGS="%{?__global_ldflags} -Llibmaa/.libs" CPPFLAGS="-Ilibmaa $RPM_OPT_FLAGS -fPIC"
 %configure --enable-dictorg --disable-plugin
@@ -83,6 +111,15 @@ database_exit
 # Add hidden database definitions here...
 
 EOF
+
+for selinuxvariant in %{selinux_variants}
+do
+  install -d %{buildroot}%{_datadir}/selinux/${selinuxvariant}
+  for i in dictd2 dictd3 dictd4 dictd5 dictd6 dictd7; do 
+     install -p -m 644 SELinux/$i.pp.${selinuxvariant} \
+       %{buildroot}%{_datadir}/selinux/${selinuxvariant}/$i.pp
+  done
+done
 
 
 %post server
@@ -120,11 +157,14 @@ exit 0
 %attr(0644,root,root) %{_unitdir}/dictd.service
 %{homedir}
 %config(noreplace) %{_sysconfdir}/dictd.conf
+%doc SELinux
+%{_datadir}/selinux/*/*.pp
 
 %changelog
 * Mon Jun 15 2015 Karsten Hopp <karsten@redhat.com> 1.12.1-9
 - fix dictd.service permissions (rhbz#1192228)
 - drop unused /etc/sysconfig/dictd (rhbz#1165413)
+- add SELinux policies (rhbz#1148302) 	
 
 * Sat Aug 16 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.12.1-8
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild

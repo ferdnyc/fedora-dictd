@@ -1,0 +1,20 @@
+
+module dictd6 1.0;
+
+require {
+	type dictd_t;
+	type user_home_t;
+	type var_lib_t;
+	class dir search;
+	class file { read getattr open };
+}
+
+#============= dictd_t ==============
+
+#!!!! This avc is allowed in the current policy
+allow dictd_t user_home_t:dir search;
+allow dictd_t user_home_t:file read;
+
+#!!!! This avc is allowed in the current policy
+allow dictd_t var_lib_t:file { read getattr open };
+

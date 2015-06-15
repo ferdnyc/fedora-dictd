@@ -1,0 +1,14 @@
+
+module dictd4 1.0;
+
+require {
+	type dictd_t;
+	type var_lib_t;
+	class file { read getattr open };
+}
+
+#============= dictd_t ==============
+allow dictd_t var_lib_t:file getattr;
+
+#!!!! This avc is allowed in the current policy
+allow dictd_t var_lib_t:file { read open };
