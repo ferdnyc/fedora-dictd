@@ -64,16 +64,10 @@ make %{?_smp_mflags}
 
 %install
 make install DESTDIR=$RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig
 mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 mkdir -p $RPM_BUILD_ROOT%{homedir}
 install -m 755 %{SOURCE1} $RPM_BUILD_ROOT/%{_unitdir}/dictd.service
 
-cat <<EOF > $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/dictd
-# Secure by default: --listen-to 127.0.0.1
-# Remove this option if you want dictd to answer remote clients.
-DICTD_FLAGS='--listen-to 127.0.0.1'
-EOF
 cat <<EOF > $RPM_BUILD_ROOT/%{_sysconfdir}/dictd.conf
 global {
     #syslog
@@ -124,12 +118,12 @@ exit 0
 %{_mandir}/man?/*
 %attr(0644,root,root) %{_unitdir}/dictd.service
 %{homedir}
-%config(noreplace) %{_sysconfdir}/sysconfig/dictd
 %config(noreplace) %{_sysconfdir}/dictd.conf
 
 %changelog
 * Mon Jun 15 2015 Karsten Hopp <karsten@redhat.com> 1.12.1-9
 - fix dictd.service permissions (rhbz#1192228)
+- drop unused /etc/sysconfig/dictd (rhbz#1165413)
 
 * Sat Aug 16 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.12.1-8
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
