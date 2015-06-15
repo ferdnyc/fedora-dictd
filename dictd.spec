@@ -12,7 +12,7 @@
 Summary:   DICT protocol (RFC 2229) server and command-line client
 Name:      dictd
 Version:   1.12.1
-Release:   8%{?dist}
+Release:   9%{?dist}
 License:   GPL+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
@@ -122,12 +122,15 @@ exit 0
 %{_bindir}/*
 %{_sbindir}/*
 %{_mandir}/man?/*
-%{_unitdir}/dictd.service
+%attr(0644,root,root) %{_unitdir}/dictd.service
 %{homedir}
 %config(noreplace) %{_sysconfdir}/sysconfig/dictd
 %config(noreplace) %{_sysconfdir}/dictd.conf
 
 %changelog
+* Mon Jun 15 2015 Karsten Hopp <karsten@redhat.com> 1.12.1-9
+- fix dictd.service permissions (rhbz#1192228)
+
 * Sat Aug 16 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.12.1-8
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
 
