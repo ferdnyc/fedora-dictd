@@ -64,6 +64,7 @@ make %{?_smp_mflags}
 
 %install
 make install DESTDIR=$RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
 mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 mkdir -p $RPM_BUILD_ROOT%{homedir}
 install -m 755 %{SOURCE1} $RPM_BUILD_ROOT/%{_unitdir}/dictd.service
