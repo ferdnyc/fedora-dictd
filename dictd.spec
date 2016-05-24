@@ -1,19 +1,14 @@
 %global _hardened_build 1
-# User management -- https://fedoraproject.org/wiki/PackageUserCreation
-%bcond_without      fedora
-# Need to register in https://fedoraproject.org/wiki/PackageUserRegistry
-%global uid     52
 # Do no change username -- hardcoded in dictd.c
 %global username    dictd
 %global homedir     %{_datadir}/dict/dictd
-%global gecos       dictd dictionary server
 %global selinux_variants mls targeted
 %define libmaaVersion 1.3.2
 
 Summary:   DICT protocol (RFC 2229) server and command-line client
 Name:      dictd
 Version:   1.12.1
-Release:   11%{?dist}
+Release:   12%{?dist}
 License:   GPL+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
@@ -132,12 +127,11 @@ done
 %systemd_postun_with_restart dictd.service 
 
 %pre
-getent group %{username} >/dev/null || groupadd -r %{username} -g %{uid}
+getent group %{username} >/dev/null || groupadd -r %{username}
 getent passwd %{username} >/dev/null || \
-    useradd -r -g %{username} -d %{homedir} -s /sbin/nologin -u %{uid} \
-    -c '%{gecos}' %{username}
+    useradd -r -g %{username} -d %{homedir} -s /sbin/nologin \
+    -c "dictd dictionary server" %{username}
 exit 0
-
 
 %files
 %doc ANNOUNCE COPYING ChangeLog README doc/rfc2229.txt doc/security.doc
@@ -161,6 +155,10 @@ exit 0
 %{_datadir}/selinux/*/*.pp
 
 %changelog
+* Tue May 24 2016 Karsten Hopp <karsten@redhat.com> - 1.12.1-12
+- solve uid 52 conflict with puppet package. use dynamic uid allocation
+  (rhbz#1337978)
+
 * Wed Feb 03 2016 Fedora Release Engineering <releng@fedoraproject.org> - 1.12.1-11
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
 
