@@ -1,5 +1,5 @@
 
-module dicd3 1.0;
+module dictd3 1.0;
 
 require {
 	type dictd_t;
