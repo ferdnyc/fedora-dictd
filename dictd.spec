@@ -8,7 +8,7 @@
 Summary:   DICT protocol (RFC 2229) server and command-line client
 Name:      dictd
 Version:   1.12.1
-Release:   12%{?dist}
+Release:   13%{?dist}
 License:   GPL+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
@@ -155,6 +155,9 @@ exit 0
 %{_datadir}/selinux/*/*.pp
 
 %changelog
+* Fri Feb 10 2017 Fedora Release Engineering <releng@fedoraproject.org> - 1.12.1-13
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_26_Mass_Rebuild
+
 * Tue May 24 2016 Karsten Hopp <karsten@redhat.com> - 1.12.1-12
 - solve uid 52 conflict with puppet package. use dynamic uid allocation
   (rhbz#1337978)
