@@ -1,3 +1,10 @@
+%if 0%{?rhel} > 6 || 0%{?fedora} >= 16
+%bcond_with         fedora
+%bcond_without      systemd
+%else
+%bcond_without      fedora
+%bcond_with         systemd
+%endif
 %global _hardened_build 1
 # Do no change username -- hardcoded in dictd.c
 %global username    dictd
@@ -8,7 +15,7 @@
 Summary:   DICT protocol (RFC 2229) server and command-line client
 Name:      dictd
 Version:   1.12.1
-Release:   12%{?dist}
+Release:   13%{?dist}
 License:   GPL+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
@@ -20,11 +27,15 @@ Source5:   dictd4.te
 Source6:   dictd5.te
 Source7:   dictd6.te
 Source8:   dictd7.te
+Source9:   dictd.init
 Patch0:    dictd-1.12.1-unused-return.patch
 URL:       http://www.dict.org/
 
 BuildRequires:  flex bison libtool libtool-ltdl-devel byacc
-BuildRequires:  libdbi-devel, zlib-devel, gawk, systemd
+BuildRequires:  libdbi-devel, zlib-devel, gawk
+%if %{with systemd}
+BuildRequires:  systemd
+%endif
 BuildRequires:	checkpolicy, selinux-policy-devel, /usr/share/selinux/devel/policyhelp
 Requires(pre):  shadow-utils
 
@@ -37,16 +48,22 @@ language dictionary databases.
 %package server
 Summary: Server for the Dictionary Server Protocol (DICT)
 Group: System Environment/Daemons
+%if %{with systemd}
 Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
+%else
+Requires(post):  chkconfig
+Requires(preun): chkconfig
+Requires(postun): initscripts
+%endif
 %if "%{_selinux_policy_version}" != ""
 Requires:       selinux-policy >= %{_selinux_policy_version}
 %endif
 
 %description server
 A server for the DICT protocol. You need to install dictd-usable databases
-before you can use this server. Those can be found p.e. at 
+before you can use this server. Those can be found p.e. at
 ftp://ftp.dict.org/pub/dict/pre/
 More information can be found in the INSTALL file in this package.
 
@@ -88,9 +105,14 @@ make %{?_smp_mflags}
 %install
 make install DESTDIR=$RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
-mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 mkdir -p $RPM_BUILD_ROOT%{homedir}
+%if %{with systemd}
+mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 install -m 755 %{SOURCE1} $RPM_BUILD_ROOT/%{_unitdir}/dictd.service
+%else
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/rc.d/init.d
+install -m 755 %{SOURCE1} $RPM_BUILD_ROOT/%{_sysconfdir}/rc.d/init.d/dictd
+%endif
 
 cat <<EOF > $RPM_BUILD_ROOT/%{_sysconfdir}/dictd.conf
 global {
@@ -110,7 +132,7 @@ EOF
 for selinuxvariant in %{selinux_variants}
 do
   install -d %{buildroot}%{_datadir}/selinux/${selinuxvariant}
-  for i in dictd2 dictd3 dictd4 dictd5 dictd6 dictd7; do 
+  for i in dictd2 dictd3 dictd4 dictd5 dictd6 dictd7; do
      install -p -m 644 SELinux/$i.pp.${selinuxvariant} \
        %{buildroot}%{_datadir}/selinux/${selinuxvariant}/$i.pp
   done
@@ -118,13 +140,33 @@ done
 
 
 %post server
+%if %{with systemd}
 %systemd_post dictd.service
+%else
+if [ $1 = 1 ]; then
+   /sbin/chkconfig --add dictd
+fi
+%endif
 
 %preun server
+%if %{with systemd}
 %systemd_preun dictd.service
+%else
+if [ $1 = 0 ]; then
+   # Stop the service (otherwise userdel will fail)
+   /etc/rc.d/init.d/dictd stop &>/dev/null || :
+   /sbin/chkconfig --del dictd
+fi
+%endif
 
 %postun server
-%systemd_postun_with_restart dictd.service 
+%if %{with systemd}
+%systemd_postun_with_restart dictd.service
+%else
+if [ $1 -ge 1 ] ; then
+   /sbin/service dictd condrestart > /dev/null 2>&1 || :
+fi
+%endif
 
 %pre
 getent group %{username} >/dev/null || groupadd -r %{username}
@@ -148,13 +190,20 @@ exit 0
 %{_bindir}/*
 %{_sbindir}/*
 %{_mandir}/man?/*
+%if %{with systemd}
 %attr(0644,root,root) %{_unitdir}/dictd.service
+%else
+%{_sysconfdir}/rc.d/init.d/*
+%endif
 %{homedir}
 %config(noreplace) %{_sysconfdir}/dictd.conf
 %doc SELinux
 %{_datadir}/selinux/*/*.pp
 
 %changelog
+* Wed Apr 05 2017 Matěj Cepl <mcepl@redhat.com> - 1.12.1-13
+- Add conditionals to build on EPEL-6 (#1116553)
+
 * Tue May 24 2016 Karsten Hopp <karsten@redhat.com> - 1.12.1-12
 - solve uid 52 conflict with puppet package. use dynamic uid allocation
   (rhbz#1337978)
@@ -168,7 +217,7 @@ exit 0
 * Mon Jun 15 2015 Karsten Hopp <karsten@redhat.com> 1.12.1-9
 - fix dictd.service permissions (rhbz#1192228)
 - drop unused /etc/sysconfig/dictd (rhbz#1165413)
-- add SELinux policies (rhbz#1148302) 	
+- add SELinux policies (rhbz#1148302)
 
 * Sat Aug 16 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.12.1-8
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
@@ -212,7 +261,7 @@ exit 0
 * Mon Jul 04 2011 Karsten Hopp <karsten@redhat.com> 1.12.0-1
 - update to version 1.12.0
 - split into server and client packages
-- add most of Oron Peled's <oron@actcom.co.il> changes from 
+- add most of Oron Peled's <oron@actcom.co.il> changes from
   https://bugzilla.redhat.com/attachment.cgi?id=381332
   - The daemon now runs as 'dictd' user. This user is added/remove
     during install/uninstall.
@@ -314,20 +363,20 @@ exit 0
 * Wed Mar 02 2005 Karsten Hopp <karsten@redhat.de> 1.9.7-6
 - build with gcc-4
 
-* Tue Jan 25 2005 Karsten Hopp <karsten@redhat.de> 1.9.7-5 
+* Tue Jan 25 2005 Karsten Hopp <karsten@redhat.de> 1.9.7-5
 - don't install config file, leave it to the dictionary packages to
   populate it. (#135920)
 
-* Mon Oct 04 2004 Karsten Hopp <karsten@redhat.de> 1.9.7-4 
+* Mon Oct 04 2004 Karsten Hopp <karsten@redhat.de> 1.9.7-4
 - add initscript
 
-* Sat Jun 19 2004 Karsten Hopp <karsten@redhat.de> 1.9.7-3 
+* Sat Jun 19 2004 Karsten Hopp <karsten@redhat.de> 1.9.7-3
 - fix build with gcc34
 
 * Tue Jun 15 2004 Elliot Lee <sopwith@redhat.com>
 - rebuilt
 
-* Wed Jun 02 2004 Karsten Hopp <karsten@redhat.de> 1.9.7-1 
+* Wed Jun 02 2004 Karsten Hopp <karsten@redhat.de> 1.9.7-1
 - update
 
 * Fri Feb 13 2004 Elliot Lee <sopwith@redhat.com>
