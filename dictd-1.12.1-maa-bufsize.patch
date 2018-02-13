@@ -1,0 +1,12 @@
+diff -up dictd-1.12.1/libmaa/log.c.size dictd-1.12.1/libmaa/log.c
+--- dictd-1.12.1/libmaa/log.c.size	2018-02-13 15:13:53.441469899 +0100
++++ dictd-1.12.1/libmaa/log.c	2018-02-13 15:18:35.743558067 +0100
+@@ -297,7 +297,7 @@ static void _log_base_va(
+ {
+    va_list ap_copy;
+    time_t t;
+-   static char   buf [4096] = "";
++   static char   buf [4608] = "";
+    static char   buf_main [4096] = "";
+    static char   buf_preamble [256] = "";
+ 

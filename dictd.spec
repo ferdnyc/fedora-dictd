@@ -15,7 +15,7 @@
 Summary:   DICT protocol (RFC 2229) server and command-line client
 Name:      dictd
 Version:   1.12.1
-Release:   17%{?dist}
+Release:   18%{?dist}
 License:   GPL+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
@@ -29,6 +29,7 @@ Source7:   dictd6.te
 Source8:   dictd7.te
 Source9:   dictd.init
 Patch0:    dictd-1.12.1-unused-return.patch
+Patch1:    dictd-1.12.1-maa-bufsize.patch
 URL:       http://www.dict.org/
 
 BuildRequires:  flex bison libtool libtool-ltdl-devel byacc
@@ -36,7 +37,8 @@ BuildRequires:  libdbi-devel, zlib-devel, gawk
 %if %{with systemd}
 BuildRequires:  systemd
 %endif
-BuildRequires:	checkpolicy, selinux-policy-devel, /usr/share/selinux/devel/policyhelp
+BuildRequires:	checkpolicy, selinux-policy-devel
+# , /usr/share/selinux/devel/policyhelp
 Requires(pre):  shadow-utils
 
 %description
@@ -72,6 +74,7 @@ More information can be found in the INSTALL file in this package.
 tar xzf %{SOURCE2}
 mv libmaa-%{libmaaVersion} libmaa
 %patch0 -p1
+%patch1 -p1
 mkdir SELinux
 cp -p %{SOURCE3} %{SOURCE4} %{SOURCE5} %{SOURCE6} %{SOURCE7} %{SOURCE8} SELinux
 
@@ -201,6 +204,10 @@ exit 0
 %{_datadir}/selinux/*/*.pp
 
 %changelog
+* Tue Feb 13 2018 Karsten Hopp <karsten@redhat.com> - 1.12.1-18
+- drop requirement policyhelp
+- enlarge buffer in log.c
+
 * Wed Feb 07 2018 Fedora Release Engineering <releng@fedoraproject.org> - 1.12.1-17
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
 
