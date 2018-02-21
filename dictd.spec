@@ -15,7 +15,7 @@
 Summary:   DICT protocol (RFC 2229) server and command-line client
 Name:      dictd
 Version:   1.12.1
-Release:   18%{?dist}
+Release:   19%{?dist}
 License:   GPL+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
@@ -33,7 +33,7 @@ Patch1:    dictd-1.12.1-maa-bufsize.patch
 URL:       http://www.dict.org/
 
 BuildRequires:  flex bison libtool libtool-ltdl-devel byacc
-BuildRequires:  libdbi-devel, zlib-devel, gawk
+BuildRequires:  libdbi-devel, zlib-devel, gawk, gcc
 %if %{with systemd}
 BuildRequires:  systemd
 %endif
@@ -204,6 +204,9 @@ exit 0
 %{_datadir}/selinux/*/*.pp
 
 %changelog
+* Wed Feb 21 2018 Karsten Hopp <karsten@redhat.com> - 1.12.1-19
+- Buildrequire gcc
+
 * Tue Feb 13 2018 Karsten Hopp <karsten@redhat.com> - 1.12.1-18
 - drop requirement policyhelp
 - enlarge buffer in log.c
