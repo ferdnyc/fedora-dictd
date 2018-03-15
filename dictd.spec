@@ -15,7 +15,7 @@
 Summary:   DICT protocol (RFC 2229) server and command-line client
 Name:      dictd
 Version:   1.12.1
-Release:   14%{?dist}
+Release:   20%{?dist}
 License:   GPL+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
@@ -29,14 +29,16 @@ Source7:   dictd6.te
 Source8:   dictd7.te
 Source9:   dictd.init
 Patch0:    dictd-1.12.1-unused-return.patch
+Patch1:    dictd-1.12.1-maa-bufsize.patch
 URL:       http://www.dict.org/
 
 BuildRequires:  flex bison libtool libtool-ltdl-devel byacc
-BuildRequires:  libdbi-devel, zlib-devel, gawk
+BuildRequires:  libdbi-devel, zlib-devel, gawk, gcc
 %if %{with systemd}
 BuildRequires:  systemd
 %endif
-BuildRequires:	checkpolicy, selinux-policy-devel, /usr/share/selinux/devel/policyhelp
+BuildRequires:	checkpolicy, selinux-policy-devel
+# , /usr/share/selinux/devel/policyhelp
 Requires(pre):  shadow-utils
 
 %description
@@ -72,6 +74,7 @@ More information can be found in the INSTALL file in this package.
 tar xzf %{SOURCE2}
 mv libmaa-%{libmaaVersion} libmaa
 %patch0 -p1
+%patch1 -p1
 mkdir SELinux
 cp -p %{SOURCE3} %{SOURCE4} %{SOURCE5} %{SOURCE6} %{SOURCE7} %{SOURCE8} SELinux
 
@@ -111,7 +114,7 @@ mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 install -m 755 %{SOURCE1} $RPM_BUILD_ROOT/%{_unitdir}/dictd.service
 %else
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/rc.d/init.d
-install -m 755 %{SOURCE1} $RPM_BUILD_ROOT/%{_sysconfdir}/rc.d/init.d/dictd
+install -m 755 %{SOURCE9} $RPM_BUILD_ROOT/%{_sysconfdir}/rc.d/init.d/dictd
 %endif
 
 cat <<EOF > $RPM_BUILD_ROOT/%{_sysconfdir}/dictd.conf
@@ -201,6 +204,25 @@ exit 0
 %{_datadir}/selinux/*/*.pp
 
 %changelog
+* Thu Mar 15 2018 Matěj Cepl <mcepl@redhat.com> - 1.12.1-20
+- Don't confuse systemd service file with the old initd script (#1444555)
+
+* Wed Feb 21 2018 Karsten Hopp <karsten@redhat.com> - 1.12.1-19
+- Buildrequire gcc
+
+* Tue Feb 13 2018 Karsten Hopp <karsten@redhat.com> - 1.12.1-18
+- drop requirement policyhelp
+- enlarge buffer in log.c
+
+* Wed Feb 07 2018 Fedora Release Engineering <releng@fedoraproject.org> - 1.12.1-17
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
+
+* Wed Aug 02 2017 Fedora Release Engineering <releng@fedoraproject.org> - 1.12.1-16
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Binutils_Mass_Rebuild
+
+* Wed Jul 26 2017 Fedora Release Engineering <releng@fedoraproject.org> - 1.12.1-15
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Mass_Rebuild
+
 * Wed Apr 05 2017 Matěj Cepl <mcepl@redhat.com> - 1.12.1-14
 - Add conditionals to build on EPEL-6 (#1116553)
 
