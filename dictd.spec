@@ -15,7 +15,7 @@
 Summary:   DICT protocol (RFC 2229) server and command-line client
 Name:      dictd
 Version:   1.12.1
-Release:   19%{?dist}
+Release:   20%{?dist}
 License:   GPL+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
@@ -114,7 +114,7 @@ mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 install -m 755 %{SOURCE1} $RPM_BUILD_ROOT/%{_unitdir}/dictd.service
 %else
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/rc.d/init.d
-install -m 755 %{SOURCE1} $RPM_BUILD_ROOT/%{_sysconfdir}/rc.d/init.d/dictd
+install -m 755 %{SOURCE9} $RPM_BUILD_ROOT/%{_sysconfdir}/rc.d/init.d/dictd
 %endif
 
 cat <<EOF > $RPM_BUILD_ROOT/%{_sysconfdir}/dictd.conf
@@ -204,6 +204,9 @@ exit 0
 %{_datadir}/selinux/*/*.pp
 
 %changelog
+* Thu Mar 15 2018 Matěj Cepl <mcepl@redhat.com> - 1.12.1-20
+- Don't confuse systemd service file with the old initd script (#1444555)
+
 * Wed Feb 21 2018 Karsten Hopp <karsten@redhat.com> - 1.12.1-19
 - Buildrequire gcc
 
