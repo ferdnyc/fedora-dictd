@@ -15,7 +15,7 @@
 Summary:   DICT protocol (RFC 2229) server and command-line client
 Name:      dictd
 Version:   1.12.1
-Release:   20%{?dist}
+Release:   21%{?dist}
 License:   GPL+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
@@ -204,6 +204,9 @@ exit 0
 %{_datadir}/selinux/*/*.pp
 
 %changelog
+* Thu Jul 12 2018 Fedora Release Engineering <releng@fedoraproject.org> - 1.12.1-21
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
+
 * Thu Mar 15 2018 Matěj Cepl <mcepl@redhat.com> - 1.12.1-20
 - Don't confuse systemd service file with the old initd script (#1444555)
 
