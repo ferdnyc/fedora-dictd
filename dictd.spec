@@ -15,19 +15,14 @@
 Summary:   DICT protocol (RFC 2229) server and command-line client
 Name:      dictd
 Version:   1.12.1
-Release:   21%{?dist}
+Release:   22%{?dist}
 License:   GPL+ and zlib and MIT
 Group:     Applications/Internet
 Source0:   http://downloads.sourceforge.net/dict/%{name}-%{version}.tar.gz
 Source1:   dictd.service
 Source2:   libmaa-%{libmaaVersion}.tar.gz
 Source3:   dictd2.te
-Source4:   dictd3.te
-Source5:   dictd4.te
-Source6:   dictd5.te
-Source7:   dictd6.te
-Source8:   dictd7.te
-Source9:   dictd.init
+Source4:   dictd.init
 Patch0:    dictd-1.12.1-unused-return.patch
 Patch1:    dictd-1.12.1-maa-bufsize.patch
 URL:       http://www.dict.org/
@@ -76,7 +71,7 @@ mv libmaa-%{libmaaVersion} libmaa
 %patch0 -p1
 %patch1 -p1
 mkdir SELinux
-cp -p %{SOURCE3} %{SOURCE4} %{SOURCE5} %{SOURCE6} %{SOURCE7} %{SOURCE8} SELinux
+cp -p %{SOURCE3} SELinux
 
 %build
 export CFLAGS="$RPM_OPT_FLAGS -fPIC"
@@ -92,11 +87,6 @@ for selinuxvariant in %{selinux_variants}
 do
   make NAME=${selinuxvariant} -f /usr/share/selinux/devel/Makefile
   mv dictd2.pp dictd2.pp.${selinuxvariant}
-  mv dictd3.pp dictd3.pp.${selinuxvariant}
-  mv dictd4.pp dictd4.pp.${selinuxvariant}
-  mv dictd5.pp dictd5.pp.${selinuxvariant}
-  mv dictd6.pp dictd6.pp.${selinuxvariant}
-  mv dictd7.pp dictd7.pp.${selinuxvariant}
   make NAME=${selinuxvariant} -f /usr/share/selinux/devel/Makefile clean
 done
 cd -
@@ -114,7 +104,7 @@ mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 install -m 755 %{SOURCE1} $RPM_BUILD_ROOT/%{_unitdir}/dictd.service
 %else
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/rc.d/init.d
-install -m 755 %{SOURCE9} $RPM_BUILD_ROOT/%{_sysconfdir}/rc.d/init.d/dictd
+install -m 755 %{SOURCE4} $RPM_BUILD_ROOT/%{_sysconfdir}/rc.d/init.d/dictd
 %endif
 
 cat <<EOF > $RPM_BUILD_ROOT/%{_sysconfdir}/dictd.conf
@@ -135,10 +125,8 @@ EOF
 for selinuxvariant in %{selinux_variants}
 do
   install -d %{buildroot}%{_datadir}/selinux/${selinuxvariant}
-  for i in dictd2 dictd3 dictd4 dictd5 dictd6 dictd7; do
-     install -p -m 644 SELinux/$i.pp.${selinuxvariant} \
-       %{buildroot}%{_datadir}/selinux/${selinuxvariant}/$i.pp
-  done
+  install -p -m 644 SELinux/dictd2.pp.${selinuxvariant} \
+    %{buildroot}%{_datadir}/selinux/${selinuxvariant}/dictd2.pp
 done
 
 
@@ -201,9 +189,12 @@ exit 0
 %{homedir}
 %config(noreplace) %{_sysconfdir}/dictd.conf
 %doc SELinux
-%{_datadir}/selinux/*/*.pp
+%{_datadir}/selinux/*/dictd2.pp
 
 %changelog
+* Fri Dec 07 2018 FeRD (Frank Dana) <ferdnyc AT gmail com> - 1.12.1-22
+- Clean up SELinux module sources
+
 * Thu Jul 12 2018 Fedora Release Engineering <releng@fedoraproject.org> - 1.12.1-21
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
 
